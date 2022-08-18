@@ -1,1 +1,2 @@
-# ZoneTree.BlobFileSystem
+# BlobFileSystem
+ZoneTree BlobFileSystem
