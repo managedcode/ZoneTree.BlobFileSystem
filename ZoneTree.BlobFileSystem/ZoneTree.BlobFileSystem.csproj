@@ -7,9 +7,18 @@
         <RootNamespace>Tenray.ZoneTree.BlobFileSystem</RootNamespace>
     </PropertyGroup>
 
+    <!--NuGet-->
+    <PropertyGroup>
+        <Title>ZoneTree.BlobFileSystem</Title>
+        <PackageId>ZoneTree.BlobFileSystem</PackageId>
+        <Description>Azure Blob FileSystem for ZoneTree</Description>
+        <PackageTags>zonetree, blob, filesystem</PackageTags>
+    </PropertyGroup>
+    
     <ItemGroup>
         <PackageReference Include="ManagedCode.Storage.Azure" Version="2.0.11" />
         <PackageReference Include="ZoneTree" Version="1.3.2" />
+        <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
     </ItemGroup>
 
 </Project>

@@ -5,23 +5,14 @@ namespace Tenray.ZoneTree.BlobFileSystem;
 public class BlobFileStream : Stream, IFileStream
 {
     private readonly Stream FileStream;
-
-    public BlobFileStream(string path,
-        FileMode mode,
-        FileAccess access,
-        FileShare share,
-        int bufferSize,
-        FileOptions options)
-    {
-        //FileStream = new FileStream(path, mode, access, share, bufferSize, options);
-        //FileStream = BlobStreamFactory.CreateBufferedStream(path);
-        throw new NotImplementedException();
-    }
-
-    public BlobFileStream(Stream stream)
+    
+    public BlobFileStream(Stream stream, FileAccess access)
     {
         FileStream = stream;
+        Access = access;
     }
+
+    public FileAccess Access { get; set; }
 
     public override bool CanRead => FileStream.CanRead;
 

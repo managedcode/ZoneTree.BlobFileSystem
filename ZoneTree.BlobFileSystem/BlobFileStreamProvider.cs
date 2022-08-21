@@ -16,17 +16,17 @@ public class BlobFileStreamProvider : IFileStreamProvider
         _container = container;
     }
 
-    public IFileStream CreateFileStream(
-        string path,
-        FileMode mode,
-        FileAccess access,
-        FileShare share,
-        int bufferSize = 4096,
-        FileOptions options = FileOptions.None)
+    public IFileStream CreateFileStream(string path, FileMode mode, FileAccess access, FileShare share, 
+        int bufferSize = BlobStream.DefaultBufferSize, FileOptions options = FileOptions.None)
     {
-        return new BlobFileStream(CreateBufferedStream(NormalizePath(path)));
-        //return new BlobFileStream(CreateStream(NormalizePath(path)));
+        if (bufferSize == 0)
+        {
+            return new BlobFileStream(CreateStream(NormalizePath(path)), access);
+        }
+        
+        return new BlobFileStream(CreateBufferedStream(NormalizePath(path), bufferSize), access);
     }
+
 
     public void CreateDirectory(string path)
     {
@@ -55,12 +55,16 @@ public class BlobFileStreamProvider : IFileStreamProvider
 
     public string ReadAllText(string path)
     {
-        throw new NotImplementedException();
+        using var reader = new StreamReader(CreateBufferedStream(path));
+        return reader.ReadToEnd();
     }
 
     public byte[] ReadAllBytes(string path)
     {
-        throw new NotImplementedException();
+        using var reader = CreateBufferedStream(path);
+        using MemoryStream ms = new MemoryStream();
+        reader.CopyTo(ms);
+        return ms.ToArray();
     }
 
     public void Replace(
@@ -68,9 +72,9 @@ public class BlobFileStreamProvider : IFileStreamProvider
         string destinationFileName,
         string destinationBackupFileName)
     {
-        // File Replace is a fast operation in local filesystem. 
-        // It uses file rename operation and it is atomic.
-        //File.Replace(sourceFileName, destinationFileName, destinationBackupFileName);
+        GetPageBlobClient(destinationFileName).CreateIfNotExists(0);
+        var operation = GetPageBlobClient(destinationFileName).StartCopyFromUri(GetPageBlobClient(sourceFileName).Uri);
+        operation.WaitForCompletionResponse();
     }
 
     public DurableFileWriter GetDurableFileWriter()
@@ -83,10 +87,10 @@ public class BlobFileStreamProvider : IFileStreamProvider
         return path.Replace('/', '\\').Replace($"{_container}\\", "");
     }
 
-    internal Stream CreateBufferedStream(string fileName)
+    internal Stream CreateBufferedStream(string fileName, int bufferSize = BlobStream.DefaultBufferSize)
     {
         fileName = NormalizePath(fileName);
-        return new BufferedStream(new BlobStream(_connectionString, _container, fileName), BlobStream.DefaultBufferSize);
+        return new BufferedStream(new BlobStream(_connectionString, _container, fileName), bufferSize);
     }
 
     internal BlobStream CreateStream(string fileName)
